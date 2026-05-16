@@ -1,0 +1,4129 @@
+import { Types } from 'mongoose'
+
+import { SubjectModel } from '../subject/subject.model.js'
+
+import type { ProgressDoc } from './progress.model.js'
+import { ProgressModel } from './progress.model.js'
+
+export type ProgressStatus = 'not_started' | 'in_progress' | 'completed'
+
+export class ProgressService {
+  async list(userId: string, subjectId?: string): Promise<ProgressDoc[]> {
+    
+    const q: Record<string, unknown> = { userId: new Types.ObjectId(userId) }
+
+
+    if (subjectId)
+
+
+      q.subjectId = new Types.ObjectId(subjectId)
+
+
+    return ProgressModel.find(q).sort({ date: -1 }).exec()
+
+  }
+
+
+
+  async create(
+    userId: string,
+
+    payload: {
+      subjectId: string
+
+
+
+      chapterId?: string
+
+
+
+
+      date: string
+
+
+
+
+      minutesRead: number
+
+
+
+
+      status: ProgressStatus
+
+
+
+
+    }
+
+
+
+  )
+
+
+  {
+
+
+    const subOk
+
+ =
+
+
+ await
+
+
+
+
+ Subject
+
+
+
+
+ Model
+
+
+
+
+ .
+
+
+
+
+ exists
+
+
+
+
+({
+
+
+
+
+
+
+      _
+
+
+
+
+ id:
+
+
+ new
+
+
+
+
+ Types
+
+
+
+
+.
+
+
+
+
+ 
+
+
+ Object
+
+
+
+
+ Id
+
+
+
+
+(payload.subject
+
+
+
+
+ Id
+
+
+
+
+
+
+)
+
+
+
+
+    
+
+
+
+
+  
+
+
+    ,
+
+
+
+
+ 
+
+
+      user
+
+
+
+
+ Id:
+
+
+ new
+
+
+
+
+ Types
+
+
+
+
+.
+
+
+
+
+ 
+
+
+ Object
+
+
+
+
+ Id
+
+
+
+
+ (user
+
+
+
+
+ Id
+
+
+
+
+
+
+)
+
+
+
+
+
+
+  
+
+
+    }).exec
+
+
+
+
+()
+
+
+
+
+
+
+  
+
+
+    
+
+
+
+
+  
+
+
+    if (!sub
+
+
+
+
+ Ok
+
+
+
+
+
+
+)
+
+
+
+
+
+
+  
+
+
+      return null
+
+
+
+
+
+
+
+
+  
+
+
+    
+
+
+
+
+
+
+
+
+  
+
+
+    const row
+
+
+
+
+ =
+
+
+
+
+ await
+
+
+
+
+ Progress
+
+
+
+
+ Model
+
+
+
+
+ .
+
+
+
+
+ 
+
+
+ create
+
+
+
+
+({
+
+
+
+
+      user
+
+
+
+
+ Id:
+
+
+ new
+
+
+
+
+ Types
+
+
+
+
+.
+
+
+
+
+ 
+
+
+ Object
+
+
+
+
+ Id
+
+
+
+
+ (user
+
+
+
+
+ Id
+
+
+
+
+
+
+)
+
+
+
+
+
+
+      ,
+
+
+
+
+ 
+
+
+      subject
+
+
+
+
+ Id:
+
+
+ new
+
+
+
+
+ Types
+
+
+
+
+.
+
+
+
+
+ 
+
+
+ Object
+
+
+
+
+ Id
+
+
+
+
+ (payload.subject
+
+
+
+
+ Id
+
+
+
+
+
+
+)
+
+
+
+
+
+
+      ,
+
+
+
+
+ 
+
+
+      chapterId: payload
+
+
+
+
+.
+
+
+
+
+ 
+
+
+ chapter
+
+
+
+
+ Id
+
+
+
+
+ ?
+
+
+
+
+ new
+
+
+
+
+ Types
+
+
+
+
+.
+
+
+
+
+ 
+
+
+ Object
+
+
+
+
+ Id
+
+
+
+
+ (payload
+
+
+
+
+.
+
+
+
+
+ 
+
+
+ chapter
+
+
+
+
+ Id
+
+
+
+
+
+
+) 
+
+
+
+
+:
+
+
+ undefined
+
+
+
+
+, 
+
+
+      date: new
+
+
+
+
+ Date
+
+
+
+
+ (payload
+
+
+
+
+.
+
+
+
+
+ 
+
+
+ date
+
+
+
+
+)
+
+
+
+
+    
+
+
+
+
+  
+
+
+    ,
+ 
+
+
+
+
+  
+
+
+      minutes
+
+
+
+
+ Read
+
+
+:
+
+
+
+
+ 
+
+
+ payload
+
+
+
+
+.
+
+
+
+
+minutes
+
+
+
+
+ Read
+
+
+
+
+,
+
+
+  
+
+
+     
+
+
+
+
+ status:
+
+
+ payload
+
+
+
+
+          
+ 
+
+
+
+
+  
+
+
+     
+
+
+
+
+ .
+
+
+
+
+ 
+
+
+status
+
+
+
+
+
+
+  
+
+
+    })
+
+
+
+
+
+
+  
+
+
+    
+
+
+
+
+  
+
+
+    const doc
+
+
+ =
+
+
+
+
+ await
+
+
+
+
+ Progress
+
+
+
+
+ Model
+
+
+
+
+  
+
+
+     
+
+
+
+
+ .
+
+
+
+
+  
+
+
+      find
+
+
+
+
+By
+
+
+
+
+ Id
+
+
+
+
+(row
+
+
+
+
+  
+
+
+     
+
+
+
+
+  
+
+
+     
+
+
+
+
+ .
+
+
+
+
+  
+
+
+     
+
+
+ _
+
+
+
+
+ id
+
+
+
+
+)
+
+
+
+
+  
+
+
+  
+
+
+
+
+  
+
+
+     
+
+
+
+
+ .
+
+
+
+
+  
+
+
+     
+
+
+
+
+ exec
+
+
+
+
+()
+
+
+
+
+  
+
+
+    
+
+
+
+
+
+
+
+
+  
+
+
+    return
+
+
+
+
+ doc
+
+
+
+
+
+
+  
+
+
+  }
+
+
+
+
+
+
+  
+
+
+  async update(
+
+
+
+
+
+
+
+
+  
+
+
+    userId: string
+
+
+
+
+    
+
+
+
+
+
+
+
+
+  
+
+
+    ,
+ 
+
+
+
+
+  
+
+
+    id:
+
+
+ string
+
+
+
+
+    
+
+
+
+
+
+
+
+
+  
+
+
+    ,
+ 
+
+
+
+
+
+
+
+
+  
+
+
+    patch: Partial
+
+
+
+
+ <
+
+
+
+
+
+
+ {
+
+
+
+
+  
+
+
+      date?: string
+
+
+
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+    ;
+
+
+
+
+
+ minutes
+
+
+
+
+
+Read
+
+
+
+
+?:
+
+
+number
+
+
+
+
+   
+
+
+
+
+  
+
+
+    ;
+
+
+
+
+
+ status
+
+
+
+
+?:
+
+
+
+
+ Progress
+
+
+
+
+ Status
+
+
+
+
+     
+
+
+
+
+
+
+
+
+  
+
+
+    ;
+
+
+
+
+
+chapter
+
+
+
+
+
+ Id
+
+
+
+
+
+?:
+
+
+
+
+ string
+
+
+
+
+ |
+
+
+ 
+
+
+ null
+
+
+
+
+    
+
+
+
+
+
+
+
+
+  
+
+
+    }
+
+
+
+
+
+
+  
+
+
+  >
+
+
+
+
+    
+
+
+
+
+
+
+
+
+  
+
+
+  )
+
+
+  {
+
+
+    
+
+
+
+
+
+
+
+
+  
+
+
+    const existing
+
+
+
+
+ =
+
+
+
+
+ await
+
+
+
+
+ Progress
+
+
+
+
+ Model
+
+
+
+
+ .
+
+
+
+
+  
+
+
+      find
+
+
+
+
+ One
+
+
+
+
+ ({
+ 
+
+
+
+
+  
+
+
+       
+
+
+
+
+ _
+
+id:
+
+
+ id
+
+
+
+
+, 
+
+
+        user
+
+
+
+
+ Id:
+
+
+ new
+
+
+
+
+ Types
+
+
+
+
+.
+
+
+ Object
+
+
+
+
+ Id
+
+
+
+
+(user
+
+
+
+
+ Id
+
+
+
+
+
+
+)
+
+
+
+
+
+
+      }).exec
+
+
+
+
+()
+
+
+
+
+
+
+
+
+  
+
+
+    
+
+
+
+
+
+
+
+
+  
+
+
+    if (!existing
+
+
+
+
+     )
+
+
+
+
+  
+
+
+      return null
+
+
+
+
+
+
+
+
+  
+
+
+    
+
+
+
+
+
+
+
+
+  
+
+
+    if (patch
+
+
+
+
+.
+
+
+
+
+  
+
+
+      date
+
+
+
+
+ 
+
+
+
+
+  
+
+
+      !==
+
+
+
+
+ undefined
+
+
+
+
+)
+
+
+
+
+
+
+  
+
+
+     
+
+
+
+
+ existing
+
+
+
+
+.
+
+
+
+
+  
+
+
+      date
+
+
+
+
+ 
+
+
+
+
+  
+
+
+      =
+
+
+
+
+ new
+
+
+
+
+ Date
+
+
+
+
+ (patch
+
+
+
+
+.
+
+
+
+
+  
+
+
+      date
+
+
+
+
+)
+
+
+
+
+
+
+
+
+  
+
+
+    if (patch
+
+
+
+
+.
+
+
+
+
+  
+
+
+      minutes
+
+
+
+
+ Read
+
+
+
+
+  
+
+
+     
+
+
+
+
+ !==
+
+
+
+
+ undefined
+
+
+
+
+)
+
+
+
+
+
+
+  
+
+
+     
+
+
+
+
+ existing
+
+
+
+
+.
+
+
+
+
+  
+
+
+      minutes
+
+
+
+
+ Read
+
+
+
+
+  
+
+
+     
+
+
+
+
+ =
+
+
+
+
+patch
+
+
+
+
+  
+
+
+     
+
+
+
+
+  
+
+
+     
+
+
+
+
+ .
+
+
+
+
+  
+
+
+     minutes
+
+
+
+
+ Read
+
+
+
+
+
+
+  
+
+
+    if (patch
+
+
+
+
+.
+
+
+
+
+  
+
+
+      status
+
+
+
+
+  
+
+
+     
+
+
+
+
+ !==
+
+
+
+
+undefined
+
+
+
+
+)
+
+
+
+
+
+
+  
+
+
+     
+
+
+
+
+ existing
+
+
+
+
+.
+
+
+
+
+  
+
+
+      status
+
+
+
+
+ 
+
+
+
+
+  
+
+
+      =
+
+
+
+
+patch
+
+
+
+
+  
+
+
+     
+
+
+
+
+ .
+
+
+
+
+  
+
+
+      
+
+
+ status
+
+
+
+
+    
+
+
+
+
+
+
+
+
+  
+
+
+    if (patch
+
+
+
+
+  
+ 
+
+
+
+
+  
+
+
+     
+
+
+
+
+ .
+
+
+
+
+  
+
+
+     
+
+
+
+
+ chapter
+
+
+
+
+ Id
+
+
+
+
+  
+
+
+     
+
+
+
+
+ !==
+
+
+
+
+ undefined
+
+
+
+
+)
+
+
+
+
+
+
+  
+
+
+    {
+
+
+
+
+
+
+  
+
+
+     
+
+
+
+
+ existing
+
+
+
+
+.
+
+
+
+
+  
+
+
+     
+
+
+
+
+ chapter
+
+
+
+
+ Id
+
+
+
+
+ 
+
+
+
+
+  
+
+
+      =
+
+
+
+
+patch
+
+
+
+
+  
+
+
+     
+
+
+
+
+ .
+
+
+
+
+  
+
+
+     
+
+
+
+
+ chapter
+
+
+
+
+ Id
+
+
+
+
+  
+
+
+     
+
+
+
+
+ ?
+
+
+
+
+ 
+
+
+ new
+
+
+
+
+ Types
+
+
+
+
+.
+
+
+
+
+ Object
+
+
+
+
+ Id
+
+
+
+
+(patch
+
+
+
+
+  
+
+
+     
+
+
+
+
+ .
+
+
+
+
+  
+
+
+     
+
+
+
+
+ chapter
+
+
+
+
+ Id
+
+
+
+
+
+
+) 
+
+
+
+
+
+
+
+
+  
+
+
+        :
+
+
+
+
+ undefined
+
+
+
+
+    
+
+
+
+
+
+
+
+
+  
+
+
+    }
+
+
+
+
+
+
+  
+
+
+    
+
+
+
+
+
+
+
+
+  
+
+
+    await
+
+
+
+
+existing
+
+
+
+
+  
+
+
+     
+
+
+
+
+ .
+
+
+
+
+  
+
+
+     
+
+
+
+
+ save
+
+
+
+
+()
+
+
+
+
+
+
+
+
+  
+
+
+    
+
+
+
+
+
+
+
+
+  
+
+
+    return
+
+
+
+
+existing
+
+
+
+
+
+
+  
+
+
+  }
+
+
+
+
+
+
+  
+
+
+  async remove(userId:
+
+
+ string
+
+
+
+
+,
+
+
+ id:
+
+
+ string
+
+
+)
+
+
+
+
+
+
+  
+
+
+  {
+
+
+    
+
+
+
+
+
+
+
+
+  
+
+
+    const
+
+
+
+
+ r
+
+
+
+
+ =
+
+
+
+
+ await
+
+
+
+
+ Progress
+
+
+
+
+ Model
+
+
+
+
+  
+
+
+     
+
+
+
+
+ .
+
+
+
+
+  
+
+
+     
+
+
+
+
+ delete
+
+
+
+
+ One
+
+
+
+
+ ({
+ 
+
+
+
+
+
+
+
+
+
+
+  
+
+
+        _
+
+id:
+
+
+ id
+
+
+
+
+    
+
+
+
+
+  
+
+
+    ,
+ 
+
+
+
+
+  
+
+
+      userId: 
+
+
+ new
+
+
+
+
+ Types
+
+
+
+
+.
+
+
+
+
+ Object
+
+
+
+
+ Id
+
+
+
+
+ (user
+
+
+
+
+ Id
+
+
+
+
+
+
+)
+
+
+
+
+
+
+  
+
+
+    }).exec
+
+
+
+
+()
+
+
+
+
+
+
+  
+
+
+    
+
+
+
+
+
+
+
+
+  
+
+
+    return r
+
+
+
+
+  
+
+
+     
+
+
+
+
+ .
+
+
+
+
+  
+
+
+     
+
+
+
+
+ deleted
+
+
+
+
+ Count
+
+
+
+
+  
+
+
+     
+
+
+
+
+ >
+
+
+
+
+  
+
+
+     
+
+
+
+
+ 0
+
+
+
+
+
+
+  
+
+
+  }
+
+
+
+
+
+
+  
+
+
+  async summary(userId:
+
+
+ string
+
+
+
+
+)
+
+
+  {
+
+
+    
+
+
+
+
+
+
+
+
+  
+
+
+    const
+
+
+
+
+ now
+
+
+
+
+ =
+
+
+
+
+ new
+
+
+
+
+ Date
+
+
+
+
+()
+
+
+
+
+
+
+
+
+  
+
+
+    
+
+
+
+
+
+
+
+
+  
+
+
+    const day
+
+
+
+
+ =
+
+
+
+
+ now
+
+
+
+
+  
+
+
+     
+
+
+
+
+ .
+
+
+
+
+  
+
+
+     
+
+
+
+
+ get
+
+
+
+
+ UT
+
+
+
+
+ CDay
+
+
+
+
+()
+
+
+
+
+
+
+
+
+  
+
+
+    
+
+
+
+
+
+
+
+
+  
+
+
+    const diff
+
+
+
+
+ =(
+
+
+   
+
+
+
+
+  
+
+
+    day
+
+
+
+
+ +
+
+
+  
+
+
+     
+
+
+
+
+ 6
+
+
+)
+
+
+  
+
+
+     
+
+
+
+
+ %
+
+
+
+
+  
+
+
+     
+
+
+
+
+ 7
+
+
+
+
+    
+
+
+
+
+
+
+
+
+  
+
+
+    const
+
+
+
+
+ startOfWeek
+
+
+
+
+ =
+
+
+
+
+ new
+
+
+
+
+ Date
+
+
+
+
+(Date
+
+
+
+
+  
+
+
+     
+
+
+
+
+ .
+
+
+
+
+  
+
+
+     
+
+
+
+
+ UTC
+
+
+
+
+(
+
+
+
+
+
+
+      now
+
+
+
+
+  
+
+
+     
+
+
+
+
+ .
+
+
+
+
+  
+
+
+     
+
+
+
+
+ get
+
+
+
+
+ UT
+
+
+
+
+ CFull
+
+
+
+
+ Year
+
+
+
+
+ ()
+
+
+
+
+
+
+      ,
+ 
+
+
+
+
+
+
+      now
+
+
+
+
+  
+
+
+     
+
+
+
+
+ .
+
+
+
+
+  
+
+
+     
+
+
+
+
+ get
+
+
+
+
+ UT
+
+
+
+
+ CMonth
+
+
+
+
+ ()
+
+
+
+
+
+
+      ,
+ 
+
+
+      now
+
+
+
+
+  
+
+
+     
+
+
+
+
+ .
+
+
+
+
+  
+
+
+     
+
+
+
+
+ get
+
+
+
+
+ UTCDate
+
+
+
+
+ ()
+
+
+
+
+ -
+
+ 
+
+
+
+
+  
+
+
+      diff
+
+
+
+
+    
+
+
+
+
+
+
+
+
+  
+
+
+    ))
+
+
+
+
+
+
+
+
+  
+
+
+    
+
+
+
+
+
+
+
+
+  
+
+
+    const startOfMonth
+
+
+
+
+ =
+
+
+
+
+new
+
+
+
+
+ 
+
+
+ Date
+
+
+
+
+ (Date
+
+
+
+
+  
+
+
+     
+
+
+
+
+ .
+
+
+
+
+  
+
+
+     
+
+
+
+
+ UTC
+
+
+
+
+(
+
+
+
+
+
+
+      now
+
+
+
+
+  
+
+
+     
+
+
+
+
+ .
+
+
+
+
+  
+
+
+     
+
+
+
+
+ get
+
+
+
+
+ UT
+
+
+
+
+ CFull
+
+
+
+
+ Year
+
+
+
+
+ ()
+
+
+
+
+
+
+      ,
+ 
+
+
+      now
+
+
+
+
+  
+
+
+     
+
+
+
+
+ .
+
+
+
+
+  
+
+
+     
+
+
+
+
+ get
+
+
+
+
+ UT
+
+
+
+
+ CMonth
+
+
+
+
+ ()
+
+
+
+
+
+
+      ,
+ 
+
+
+     
+
+
+
+
+ 1
+
+
+
+
+
+
+  
+
+
+    ))
+
+
+
+
+
+
+
+
+  
+
+
+    
+
+
+
+
+
+
+
+
+  
+
+
+    const
+
+
+  
+
+
+
+
+  
+
+
+    agg
+
+
+
+
+
+
+
+
+
+
+  
+
+
+    =
+
+
+  
+
+
+
+
+  
+
+
+    ([
+
+
+  
+
+
+
+
+  
+
+
+      {
+
+
+
+
+  
+
+
+       
+
+
+
+
+ $match:
+
+
+ {
+
+
+
+
+  
+
+
+          user
+
+
+
+
+ Id:
+
+
+ new
+
+
+
+
+ Types
+
+
+
+
+.
+
+
+
+
+ 
+
+
+ Object
+
+
+
+
+ Id
+
+
+
+
+ (user
+
+
+
+
+ Id
+
+
+
+
+
+
+)
+
+
+
+
+
+
+          ,
+ 
+
+
+
+
+
+
+         
+
+
+
+
+ date:
+
+
+ { $gte:
+
+
+ startOf
+
+
+
+
+ Week
+
+
+
+
+ }
+
+
+
+
+
+
+
+
+  
+
+
+        }
+
+
+
+
+
+
+  
+
+
+      }
+
+
+
+
+
+
+      ,
+ 
+
+
+
+
+
+
+      {
+
+
+ 
+
+
+
+
+  
+
+
+        $group:
+
+
+ {
+
+
+
+
+  
+
+
+          
+
+
+
+
+ _
+
+id:
+
+
+ null
+
+
+
+
+        
+
+
+
+
+  
+
+
+        ,
+ 
+
+
+          minutes:
+
+
+
+
+   
+
+
+
+
+  
+
+
+          {
+
+
+ $sum:
+
+
+
+
+  
+
+
+          '$minutes
+
+
+
+
+Read
+
+
+
+
+'}
+
+
+
+
+
+
+
+
+        }
+
+
+
+
+
+
+      }
+
+
+
+
+
+
+  
+
+
+    ])
+
+
+
+
+
+
+
+
+  
+
+
+    
+
+
+
+
+
+
+
+
+  
+
+
+    const
+
+
+
+
+ weeklyTotals
+
+
+
+
+ 
+
+
+ =
+
+
+
+
+await
+
+
+
+
+   
+
+
+
+
+  
+
+
+    Progress
+
+
+
+
+ Model
+
+
+
+
+  
+
+
+     
+
+
+
+
+ .
+
+
+
+
+  
+
+
+     
+
+
+
+
+ aggregate
+
+
+
+
+(agg
+
+
+
+
+).exec
+
+
+
+
+()
+
+
+
+
+
+
+
+
+  
+
+
+    
+
+
+
+
+
+
+
+
+  
+
+
+    const monthlyTotals
+
+
+
+
+  
+
+
+    =
+
+
+
+
+ await
+
+
+
+
+ Progress
+
+
+
+
+ Model
+
+
+
+
+  
+
+
+     
+
+
+
+
+ .
+
+
+
+
+  
+
+
+     
+
+
+
+
+ aggregate
+
+
+
+
+ ([
+
+
+
+
+  
+
+
+        {
+
+
+ $match:
+
+
+ {
+
+
+
+
+  
+
+
+            user
+
+
+
+
+ Id:
+
+
+ new
+
+
+
+
+ Types
+
+
+
+
+.
+
+
+
+
+ 
+
+
+ Object
+
+
+
+
+ Id
+
+
+
+
+ (user
+
+
+
+
+ Id
+
+
+
+
+
+
+)
+
+
+
+
+
+
+            ,
+ 
+
+
+
+
+
+
+            date:
+
+
+ { $gte:
+
+
+
+
+  
+
+
+            start
+
+
+
+
+ Of
+
+
+
+
+ Month}
+
+
+
+
+ 
+
+
+
+
+  
+
+
+          }
+
+
+
+
+
+
+  
+
+
+        }
+
+
+
+
+
+
+        ,
+ 
+
+
+        {
+
+
+
+
+
+
+          $
+
+
+
+
+ group:
+
+
+ {
+
+
+            _id:
+
+
+ null
+
+
+
+
+        
+
+
+
+
+  
+
+
+          ,
+ 
+
+
+            minutes:
+
+
+ { $sum:
+
+
+ '$minutes
+
+
+
+
+ Read
+
+
+
+
+'}
+
+
+
+
+
+
+
+
+          }
+
+
+
+
+
+
+        }
+
+
+
+
+
+
+      ]).exec()
+
+
+
+
+
+
+
+
+  
+
+
+    
+
+
+
+
+
+
+
+
+  
+
+
+    return {
+
+
+
+
+  
+
+
+      weeklyMinutes:
+
+
+
+
+  
+
+
+     
+
+
+
+
+ Number
+
+
+
+
+ ((weeklyTotals
+
+
+
+
+  
+
+
+     
+
+
+
+
+[
+
+
+
+
+0
+
+
+
+
+] 
+
+
+
+
+as
+
+
+
+
+ 
+
+
+
+
+  
+
+
+     
+
+
+
+
+ { minutes?: number }
+
+
+
+
+  
+
+
+     
+
+
+
+
+ |
+
+
+   
+
+
+
+
+  
+
+
+      undefined)?.minutes
+
+
+
+
+ ??
+ 
+
+
+
+
+  
+
+
+      0),
+
+
+  
+
+
+     
+
+
+
+
+ monthlyMinutes:
+
+
+
+
+  
+
+
+     
+
+
+
+
+ Number
+
+
+
+
+ ((
+
+
+
+
+ monthlyTotals
+
+
+
+
+      
+ 
+
+
+
+
+  
+
+
+     
+
+
+
+
+[
+
+
+
+
+0
+
+
+
+
+] 
+
+
+ as
+
+
+
+
+  
+
+
+     
+
+
+
+
+        
+
+
+
+
+  
+
+
+      {minutes?:
+
+
+
+
+ number
+
+
+
+
+}
+
+
+
+
+  
+
+
+     
+
+
+
+
+      |
+ 
+
+
+
+
+  
+
+
+      undefined)?.minutes
+
+
+
+
+ 
+
+
+
+
+  
+
+
+      ??
+
+
+
+
+  
+
+
+     
+
+
+
+
+  0
+
+
+
+
+), 
+
+
+    }
+
+
+
+
+
+
+  
+
+
+  }
+
+
+
+
+
+
+}
+
+
