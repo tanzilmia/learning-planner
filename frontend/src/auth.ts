@@ -1,13 +1,22 @@
 import NextAuth from 'next-auth'
 import Google from 'next-auth/providers/google'
 
+const googleClientId =
+  process.env.AUTH_GOOGLE_ID?.trim() ||
+  process.env.GOOGLE_CLIENT_ID?.trim() ||
+  ''
+const googleClientSecret =
+  process.env.AUTH_GOOGLE_SECRET?.trim() ||
+  process.env.GOOGLE_CLIENT_SECRET?.trim() ||
+  ''
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   secret: process.env.AUTH_SECRET,
   trustHost: true,
   providers: [
     Google({
-      clientId: process.env.AUTH_GOOGLE_ID ?? '',
-      clientSecret: process.env.AUTH_GOOGLE_SECRET ?? '',
+      clientId: googleClientId,
+      clientSecret: googleClientSecret,
       authorization: {
         params: {
           prompt: 'consent',
