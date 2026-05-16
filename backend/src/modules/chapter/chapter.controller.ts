@@ -18,7 +18,7 @@ export function buildChapterController(chapterService: ChapterService) {
       const subjectId = req.params.subjectId!
       const { title } = req.body ?? {}
       if (!title || typeof title !== 'string') {
-        res.status(400).json({ message: 'ধারার শিরোনাম প্রয়োজন' })
+        res.status(400).json({ message: 'অধ্যায়ের শিরোনাম প্রয়োজন' })
         return
       }
       const chapter = await chapterService.create(subjectId, userId, title)
@@ -34,7 +34,7 @@ export function buildChapterController(chapterService: ChapterService) {
       const { id } = req.params
       const chapter = await chapterService.update(userId, id, req.body ?? {})
       if (!chapter) {
-        res.status(404).json({ message: 'ধারা পাওয়া যায়নি' })
+        res.status(404).json({ message: 'অধ্যায় পাওয়া যায়নি' })
         return
       }
       res.json({ chapter })
@@ -45,7 +45,7 @@ export function buildChapterController(chapterService: ChapterService) {
       const { id } = req.params
       const deleted = await chapterService.remove(userId, id)
       if (!deleted) {
-        res.status(404).json({ message: 'ধারা পাওয়া যায়নি' })
+        res.status(404).json({ message: 'অধ্যায় পাওয়া যায়নি' })
         return
       }
       res.status(204).send()

@@ -48,7 +48,7 @@ export interface Chapter {
 
 }
 
-export type NoteType = 'text' | 'pdf' | 'url' | 'youtube'
+export type NoteType = 'text' | 'pdf' | 'image' | 'document' | 'url' | 'youtube'
 
 export interface Note {
 
@@ -94,6 +94,12 @@ export interface Note {
   }
 
 
+  studyAt?: string
+
+
+  practiceDeadline?: string
+
+
   createdAt?: string
 
 
@@ -128,7 +134,35 @@ export interface CalendarEvent {
   note?: string
 
 
+  linkedNoteId?: string
+
+
+  linkedKind?: 'study' | 'deadline'
+
+
   createdAt?: string
+
+
+}
+
+export interface CalendarNoteSlot {
+
+  noteId: string
+
+
+  subjectId: string
+
+
+  chapterId: string | null
+
+
+  title: string
+
+
+  slotType: 'study' | 'deadline'
+
+
+  date: string
 
 
 }

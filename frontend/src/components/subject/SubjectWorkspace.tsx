@@ -28,12 +28,12 @@ import { useSubjects } from '@/hooks/useSubjects'
 
 import { useUiStore } from '@/store/uiStore'
 
-const FILTERS = ['all', 'text', 'pdf', 'url', 'youtube'] as const
+const FILTERS = ['all', 'text', 'file', 'url', 'youtube'] as const
 
 const FILTER_LABELS: Record<(typeof FILTERS)[number], string> = {
   all: 'সব',
   text: 'টেক্সট',
-  pdf: 'পিডিএফ',
+  file: 'ফাইল',
   url: 'লিংক',
   youtube: 'ইউটিউব',
 }
@@ -66,35 +66,38 @@ export default function SubjectWorkspace({
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-4">
-      <div className="flex flex-wrap items-center gap-3">
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/" className="gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            ড্যাশবোর্ড
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <h1 className="text-2xl font-semibold">{subject?.name ?? 'বিষয়'}</h1>
-          <p className="text-sm text-muted-foreground">ধারা ও নোট পরিচালনা করুন।</p>
+    <div className="mx-auto w-full max-w-6xl space-y-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/dashboard" className="gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              ড্যাশবোর্ড
+            </Link>
+          </Button>
+          <div className="min-w-0 flex-1 sm:flex-none">
+            <h1 className="truncate text-xl font-semibold sm:text-2xl">{subject?.name ?? 'বিষয়'}</h1>
+            <p className="text-xs text-muted-foreground sm:text-sm">অধ্যায় ও নোট পরিচালনা করুন।</p>
+          </div>
         </div>
-        <Button type="button" className="gap-2" onClick={() => setNoteOpen(true)}>
+        <Button type="button" className="gap-2 self-start sm:self-auto" size="sm" onClick={() => setNoteOpen(true)}>
           <Plus className="h-4 w-4" />
           নতুন নোট
         </Button>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[260px_minmax(0,1fr)]">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,260px)_minmax(0,1fr)]">
         <ChapterSidebar subjectId={subjectId} chapters={chapters} onCreate={() => setChOpen(true)} />
 
-        <div className="space-y-4">
-          <div className="flex flex-wrap gap-2">
+        <div className="min-w-0 space-y-4">
+          <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {FILTERS.map((key) => (
               <Button
                 key={key}
                 type="button"
                 size="sm"
                 variant={noteTab === key ? 'default' : 'outline'}
+                className="whitespace-nowrap shrink-0"
                 onClick={() => setNoteTab(key)}
               >
                 {FILTER_LABELS[key]}
@@ -106,12 +109,12 @@ export default function SubjectWorkspace({
       </div>
 
       <Dialog open={chOpen} onOpenChange={setChOpen}>
-        <DialogContent>
+        <DialogContent className="mx-4 max-h-[90vh] w-[calc(100%-2rem)] overflow-y-auto sm:mx-auto sm:max-h-[90vh] sm:w-full">
           <DialogHeader>
-            <DialogTitle>নতুন ধারা</DialogTitle>
+            <DialogTitle>নতুন অধ্যায়</DialogTitle>
           </DialogHeader>
           <div className="space-y-2">
-            <Label htmlFor="ch-title">ধারার শিরোনাম</Label>
+            <Label htmlFor="ch-title">অধ্যায়ের শিরোনাম</Label>
             <Input id="ch-title" value={chTitle} onChange={(e) => setChTitle(e.target.value)} />
           </div>
           <Button type="button" onClick={() => void submitChapter()} disabled={createChapter.isPending}>
@@ -121,11 +124,13 @@ export default function SubjectWorkspace({
       </Dialog>
 
       <Dialog open={noteOpen} onOpenChange={setNoteOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
-          <DialogHeader>
+        <DialogContent className="mx-4 flex max-h-[min(92dvh,900px)] w-[calc(100%-2rem)] flex-col overflow-hidden p-4 sm:mx-auto sm:max-h-[90vh] sm:w-full sm:max-w-2xl sm:p-6">
+          <DialogHeader className="shrink-0 text-left">
             <DialogTitle>নতুন নোট</DialogTitle>
           </DialogHeader>
-          <NoteForm subjectId={subjectId} chapterId={chapterId ?? null} chapters={chapters} onDone={() => setNoteOpen(false)} />
+          <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+            <NoteForm subjectId={subjectId} chapterId={chapterId ?? null} chapters={chapters} onDone={() => setNoteOpen(false)} />
+          </div>
         </DialogContent>
       </Dialog>
     </div>

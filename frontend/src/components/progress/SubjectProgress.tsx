@@ -232,7 +232,7 @@ export function SubjectProgress() {
 
             <div className="space-y-2">
 
-              <Label>ধারা (ঐচ্ছিক)</Label>
+              <Label>অধ্যায় (ঐচ্ছিক)</Label>
 
               <select
 
@@ -244,7 +244,7 @@ export function SubjectProgress() {
 
               >
 
-                <option value="">ধারা ছাড়া</option>
+                <option value="">অধ্যায় ছাড়া</option>
 
                 {chapters?.map((c) => (
 

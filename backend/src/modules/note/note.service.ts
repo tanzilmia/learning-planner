@@ -7,7 +7,7 @@ import { NoteDoc, NoteModel } from './note.model.js'
 import { fetchOpenGraph } from './note.og.js'
 import { parseYouTube } from './note.youtube.js'
 
-export type NoteType = 'text' | 'pdf' | 'url' | 'youtube'
+export type NoteType = 'text' | 'pdf' | 'image' | 'document' | 'url' | 'youtube'
 
 export interface CreateNoteInput {
   subjectId: string
@@ -17,6 +17,9 @@ export interface CreateNoteInput {
   content?: string | null
   fileUrl?: string | null
   sourceUrl?: string | null
+  studyAt?: Date | null
+
+  practiceDeadline?: Date | null
 }
 
 export class NoteService {
@@ -24,7 +27,7 @@ export class NoteService {
     userId: string
     subjectId?: string
     chapterId?: string
-    type?: NoteType
+    type?: NoteType | 'file'
   }): Promise<NoteDoc[]> {
     const q: Record<string, unknown> = {
       userId: new Types.ObjectId(filters.userId),
@@ -32,7 +35,11 @@ export class NoteService {
 
     if (filters.subjectId) q.subjectId = new Types.ObjectId(filters.subjectId)
     if (filters.chapterId) q.chapterId = new Types.ObjectId(filters.chapterId)
-    if (filters.type) q.type = filters.type
+    if (filters.type === 'file') {
+      q.type = { $in: ['pdf', 'image', 'document'] }
+    } else if (filters.type) {
+      q.type = filters.type
+    }
 
     return NoteModel.find(q).sort({ updatedAt: -1 }).exec()
   }
@@ -78,6 +85,8 @@ export class NoteService {
       content: data.content ?? undefined,
       fileUrl: data.fileUrl ?? undefined,
       sourceUrl,
+      ...(data.studyAt ? { studyAt: data.studyAt } : {}),
+      ...(data.practiceDeadline ? { practiceDeadline: data.practiceDeadline } : {}),
       ...(meta ? { urlMetadata: meta } : {}),
     })
 
@@ -100,6 +109,10 @@ export class NoteService {
     if (patch.sourceUrl !== undefined) existing.sourceUrl = patch.sourceUrl ?? undefined
     if (patch.fileUrl !== undefined) existing.fileUrl = patch.fileUrl ?? undefined
     if (patch.type !== undefined) existing.type = patch.type
+    if (patch.studyAt !== undefined)
+      existing.studyAt = patch.studyAt === null ? undefined : patch.studyAt
+    if (patch.practiceDeadline !== undefined)
+      existing.practiceDeadline = patch.practiceDeadline === null ? undefined : patch.practiceDeadline
 
     await existing.save()
     return existing

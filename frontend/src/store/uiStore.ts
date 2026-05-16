@@ -16,10 +16,10 @@ export const useUiStore = create<{
   setActiveModal: (m: ModalKey) => void
 
 
-  noteTab: 'all' | 'text' | 'pdf' | 'url' | 'youtube'
+  noteTab: 'all' | 'text' | 'file' | 'url' | 'youtube'
 
 
-  setNoteTab: (t: 'all' | 'text' | 'pdf' | 'url' | 'youtube') => void
+  setNoteTab: (t: 'all' | 'text' | 'file' | 'url' | 'youtube') => void
 
 
 }>()((set) => ({

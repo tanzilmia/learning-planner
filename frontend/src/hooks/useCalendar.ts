@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { api } from '@/lib/api'
 
-import type { CalendarEvent } from '@/types/models'
+import type { CalendarEvent, CalendarNoteSlot } from '@/types/models'
 
 export const calendarKeys = {
 
@@ -11,6 +11,8 @@ export const calendarKeys = {
   month: (month: number, year: number) => [...calendarKeys.all, 'month', month, year] as const,
 
 }
+
+export type CalendarMonthData = { events: CalendarEvent[]; noteSlots: CalendarNoteSlot[] }
 
 export function useCalendarEvents(month: number, year: number) {
 
@@ -22,9 +24,13 @@ export function useCalendarEvents(month: number, year: number) {
 
       const params = new URLSearchParams({ month: String(month), year: String(year) })
 
-      const { data } = await api.get<{ events: CalendarEvent[] }>(`/calendar?${params.toString()}`)
+      const { data } = await api.get<{ events: CalendarEvent[]; noteSlots?: CalendarNoteSlot[] }>(
 
-      return data.events
+        `/calendar?${params.toString()}`,
+
+      )
+
+      return { events: data.events, noteSlots: data.noteSlots ?? [] }
 
     },
 
@@ -50,6 +56,10 @@ export function useCreateCalendarEvent() {
 
       note?: string
 
+      linkedNoteId?: string
+
+      linkedKind?: 'study' | 'deadline'
+
     }) => {
 
       const { data } = await api.post<{ event: CalendarEvent }>('/calendar', payload)
@@ -60,7 +70,10 @@ export function useCreateCalendarEvent() {
 
     onSuccess: async () => {
 
-      await qc.invalidateQueries({ queryKey: calendarKeys.all })
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: calendarKeys.all }),
+        qc.invalidateQueries({ queryKey: ['notes'] }),
+      ])
 
     },
 
@@ -102,7 +115,10 @@ export function useUpdateCalendarEvent() {
 
     onSuccess: async () => {
 
-      await qc.invalidateQueries({ queryKey: calendarKeys.all })
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: calendarKeys.all }),
+        qc.invalidateQueries({ queryKey: ['notes'] }),
+      ])
 
     },
 
@@ -124,7 +140,10 @@ export function useDeleteCalendarEvent() {
 
     onSuccess: async () => {
 
-      await qc.invalidateQueries({ queryKey: calendarKeys.all })
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: calendarKeys.all }),
+        qc.invalidateQueries({ queryKey: ['notes'] }),
+      ])
 
     },
 

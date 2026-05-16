@@ -12,7 +12,7 @@ type LoginFormProps = {
 
 export function LoginForm({ googleOAuthConfigured }: LoginFormProps) {
   const searchParams = useSearchParams()
-  const callbackUrl = searchParams.get('callbackUrl') ?? '/'
+  const callbackUrl = searchParams.get('callbackUrl') ?? '/dashboard'
 
   return (
     <Card className="w-full max-w-md border-border/80 shadow-lg">

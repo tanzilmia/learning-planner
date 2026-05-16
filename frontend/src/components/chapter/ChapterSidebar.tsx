@@ -40,7 +40,7 @@ export function ChapterSidebar({
 
       <div className="flex items-center justify-between border-b px-3 py-2">
 
-        <p className="text-sm font-semibold">ধারাসমূহ</p>
+        <p className="text-sm font-semibold">অধ্যায়সমূহ</p>
 
         <Button size="sm" variant="outline" type="button" className="gap-1" onClick={onCreate}>
 
@@ -74,7 +74,7 @@ export function ChapterSidebar({
 
         <Separator className="my-2" />
 
-        {!chapters?.length ? <p className="px-2 text-xs text-muted-foreground">কোনো ধারা নেই।</p> : null}
+        {!chapters?.length ? <p className="px-2 text-xs text-muted-foreground">কোনো অধ্যায় নেই।</p> : null}
 
         <ul className="space-y-1">
 

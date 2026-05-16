@@ -29,9 +29,8 @@ export function buildCalendarController(service: CalendarService) {
         return
       }
 
-      
-      const events = await service.listMonth(userId, monthYear.month, monthYear.year)
-      res.json({ events })
+      const { events, noteSlots } = await service.listMonth(userId, monthYear.month, monthYear.year)
+      res.json({ events, noteSlots })
 
     },
 
@@ -57,11 +56,26 @@ export function buildCalendarController(service: CalendarService) {
         return
       }
 
-      
-      const event = await service.create(userId, { subjectId: subjectId.trim(), title: title.trim(), date: date.trim(), duration, note })
+      let linkedNoteId: string | undefined
+      const rawLn = req.body.linkedNoteId
+      if (typeof rawLn === 'string' && rawLn.trim()) linkedNoteId = rawLn.trim()
+
+      let linkedKind: 'study' | 'deadline' | undefined
+      const rawK = req.body.linkedKind
+      if (rawK === 'deadline' || rawK === 'study') linkedKind = rawK
+
+      const event = await service.create(userId, {
+        subjectId: subjectId.trim(),
+        title: title.trim(),
+        date: date.trim(),
+        duration,
+        note,
+        linkedNoteId,
+        linkedKind,
+      })
 
       if (!event) {
-        res.status(404).json({ message: 'বিষয় পাওয়া যায়নি' })
+        res.status(404).json({ message: 'বিষয় বা লিঙ্ক করা নোট খুঁজে পাওয়া যায়নি' })
 
         return
       }
@@ -93,19 +107,20 @@ export function buildCalendarController(service: CalendarService) {
       if (typeof body.duration === 'number') patch.duration = body.duration
       if (typeof body.isCompleted === 'boolean') patch.isCompleted = body.isCompleted
       
-      const event = await service.update(userId, id, patch)
+      const result = await service.update(userId, id, patch)
 
-      if (!event) {
-
+      if (!result.ok) {
+        if (result.reason === 'SUBJECT_LOCKED') {
+          res.status(403).json({ message: 'লিঙ্ক করা ইভেন্টের বিষয় পরিবর্তন করা যাবে না' })
+          return
+        }
         res.status(404).json({ message: 'ইভেন্ট পাওয়া যায়নি' })
-
-
 
         return
       }
 
       
-      res.json({ event })
+      res.json({ event: result.event })
 
     },
 

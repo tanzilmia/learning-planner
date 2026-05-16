@@ -9,6 +9,8 @@ const calendarEventSchema = new Schema(
     duration: { type: Number, default: 60 },
     isCompleted: { type: Boolean, default: false },
     note: { type: String },
+    linkedNoteId: { type: Schema.Types.ObjectId, ref: 'Note', index: true },
+    linkedKind: { type: String, enum: ['study', 'deadline'], default: 'study' },
   },
   { timestamps: true }
 )

@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils'
 
 const links = [
 
-  { href: '/', label: 'ড্যাশবোর্ড', icon: LayoutDashboard },
+  { href: '/dashboard', label: 'ড্যাশবোর্ড', icon: LayoutDashboard },
 
   { href: '/calendar', label: 'ক্যালেন্ডার', icon: CalendarDays },
 
@@ -45,8 +45,10 @@ export function Sidebar({ className }: { className?: string }) {
       <nav className="flex flex-col gap-1">
 
         {links.map(({ href, label, icon: Icon }) => {
-
-          const active = href === '/' ? pathname === '/' : pathname.startsWith(href)
+          const isActive =
+            href === '/dashboard'
+              ? pathname === '/dashboard' || pathname.startsWith('/subject')
+              : pathname === href || pathname.startsWith(`${href}/`)
 
           return (
 
@@ -60,7 +62,7 @@ export function Sidebar({ className }: { className?: string }) {
 
                 'flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors',
 
-                active ? 'bg-primary/15 text-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                isActive ? 'bg-primary/15 text-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground',
 
               )}
 

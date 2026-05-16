@@ -18,6 +18,8 @@ import { Separator } from '@/components/ui/separator'
 
 import { Textarea } from '@/components/ui/textarea'
 
+import { useNotes } from '@/hooks/useNotes'
+
 function toLocalInputValue(d: Date) {
 
   const pad = (n: number) => String(n).padStart(2, '0')
@@ -52,7 +54,16 @@ export function EventForm({
 
   onCancel: () => void
 
-  onCreate: (payload: { subjectId: string; title: string; date: string; duration: number; note?: string }) => Promise<void>
+  onCreate: (payload: {
+
+    subjectId: string
+    title: string
+    date: string
+    duration: number
+    note?: string
+    linkedNoteId?: string
+    linkedKind?: 'study' | 'deadline'
+  }) => Promise<void>
 
   onUpdate: (payload: {
 
@@ -94,6 +105,21 @@ export function EventForm({
 
   const [done, setDone] = useState(editing?.isCompleted ?? false)
 
+  const [linkNoteId, setLinkNoteId] = useState('')
+
+  const [linkKind, setLinkKind] = useState<'study' | 'deadline'>('study')
+
+  const { data: notesList } = useNotes({ subjectId, type: 'all' })
+
+  const notes = notesList ?? []
+
+  const subjectLocked = Boolean(editing?.linkedNoteId)
+
+  const editingLinkedNoteLabel = editing?.linkedNoteId
+    ? notes.find((n) => n._id === editing.linkedNoteId)?.title ?? '…'
+
+    : null
+
   useEffect(() => {
 
     setSubjectId(editing?.subjectId ?? subjects?.[0]?._id ?? '')
@@ -111,6 +137,20 @@ export function EventForm({
     setNote(editing?.note ?? '')
 
     setDone(editing?.isCompleted ?? false)
+
+    if (editing?.linkedNoteId) {
+
+      setLinkNoteId(editing.linkedNoteId)
+
+      setLinkKind(editing.linkedKind === 'deadline' ? 'deadline' : 'study')
+
+    } else {
+
+      setLinkNoteId('')
+
+      setLinkKind('study')
+
+    }
 
   }, [editing, initialDate, subjects])
 
@@ -144,7 +184,21 @@ export function EventForm({
 
     } else {
 
-      await onCreate({ subjectId, title: title.trim(), date: iso, duration, note: note.trim() || undefined })
+      await onCreate({
+
+        subjectId,
+
+        title: title.trim(),
+
+        date: iso,
+
+        duration,
+
+        note: note.trim() || undefined,
+
+        ...(linkNoteId ? { linkedNoteId: linkNoteId, linkedKind: linkKind } : {}),
+
+      })
 
     }
 
@@ -176,11 +230,19 @@ export function EventForm({
 
         <select
 
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+          className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm disabled:opacity-60"
 
           value={subjectId}
 
-          onChange={(e) => setSubjectId(e.target.value)}
+          disabled={subjectLocked}
+
+          onChange={(e) => {
+
+            setSubjectId(e.target.value)
+
+            setLinkNoteId('')
+
+          }}
 
         >
 
@@ -198,7 +260,105 @@ export function EventForm({
 
         </select>
 
+        {subjectLocked ? (
+
+          <p className="text-xs text-muted-foreground">
+
+            এই ইভেন্টটি একটি নোটের সাথে লিঙ্ক — বিষয় পরিবর্তন করা যাবে না।
+
+          </p>
+
+        ) : null}
+
       </div>
+
+      {editing?.linkedNoteId ? (
+
+        <div className="rounded-md border border-border bg-muted/40 px-3 py-2 text-sm">
+
+          <span className="text-muted-foreground">লিঙ্ক করা নোট · </span>
+
+          <span className="font-medium">{editingLinkedNoteLabel}</span>
+
+          <span className="text-muted-foreground"> · </span>
+
+          {linkKind === 'deadline' ? 'ডেডলাইন' : 'পড়াশোনার সময়'}
+
+        </div>
+
+      ) : null}
+
+      {!editing ? (
+
+        <div className="space-y-2">
+
+          <Label htmlFor="ev-link-note">নোট (ঐচ্ছিক)</Label>
+
+          <select
+
+            id="ev-link-note"
+
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+
+            value={linkNoteId}
+
+            onChange={(e) => setLinkNoteId(e.target.value)}
+
+          >
+
+            <option value="">নয় · শুধু ক্যালেন্ডারে রাখুন</option>
+
+            {notes.map((n) => (
+
+              <option key={n._id} value={n._id}>
+
+                {n.title}
+
+              </option>
+
+            ))}
+
+          </select>
+
+          {linkNoteId ? (
+
+            <div className="flex flex-wrap gap-4 rounded-md bg-muted/30 px-3 py-2 text-sm">
+
+              <span className="w-full shrink-0 text-muted-foreground">নোটে কী সময় লিঙ্ক করবেন:</span>
+
+              <label className="flex cursor-pointer items-center gap-2">
+
+                <input
+
+                  type="radio"
+
+                  name="ev-link-kind"
+
+                  checked={linkKind === 'study'}
+
+                  onChange={() => setLinkKind('study')}
+
+                />
+
+                পড়াশোনার সময়
+
+              </label>
+
+              <label className="flex cursor-pointer items-center gap-2">
+
+                <input type="radio" name="ev-link-kind" checked={linkKind === 'deadline'} onChange={() => setLinkKind('deadline')} />
+
+                ডেডলাইন (দিন)
+
+              </label>
+
+            </div>
+
+          ) : null}
+
+        </div>
+
+      ) : null}
 
       <div className="space-y-2">
 

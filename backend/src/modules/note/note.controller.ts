@@ -3,7 +3,8 @@ import type { Request, Response } from 'express'
 import type { NoteService } from './note.service.js'
 
 import type { NoteType } from './note.service.js'
-import { uploadPdfBuffer } from './note.upload.js'
+import { interpretSchedulePatchFromBody, parsePracticeDeadlineDay, parseStudyAt } from './note.schedule.js'
+import { uploadNoteFileBuffer } from './note.upload.js'
 
 type MulterReq = Request & {
   userId?: string
@@ -27,6 +28,23 @@ function asString(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim().length ? value.trim() : undefined
 }
 
+function parseListType(raw: string | undefined): NoteType | 'file' | undefined {
+  if (!raw?.trim()) return undefined
+  const t = raw.trim()
+  if (t === 'file') return 'file'
+  if (
+    t === 'text' ||
+    t === 'pdf' ||
+    t === 'image' ||
+    t === 'document' ||
+    t === 'url' ||
+    t === 'youtube'
+  ) {
+    return t as NoteType
+  }
+  return undefined
+}
+
 export function buildNoteController(noteService: NoteService) {
   return {
     async list(req: Request & { userId?: string; query: Record<string, string | undefined> }, res: Response) {
@@ -34,9 +52,9 @@ export function buildNoteController(noteService: NoteService) {
       const { subjectId, chapterId, type } = req.query
       const notes = await noteService.list({
         userId,
-        subjectId: subjectId,
-        chapterId: chapterId,
-        type: type as NoteType | undefined,
+        subjectId,
+        chapterId,
+        type: parseListType(type),
       })
       res.json({ notes })
     },
@@ -58,6 +76,10 @@ export function buildNoteController(noteService: NoteService) {
       const content = asString(req.body.content) ?? undefined
       const sourceUrl = asString(req.body.sourceUrl) ?? undefined
 
+      const rawBody = req.body as Record<string, unknown>
+      const studyAt = parseStudyAt(rawBody.studyAt)
+      const practiceDeadline = parsePracticeDeadlineDay(rawBody.practiceDeadline)
+
       const note = await noteService.create(userId, {
         subjectId,
         chapterId,
@@ -65,6 +87,8 @@ export function buildNoteController(noteService: NoteService) {
         title,
         content,
         sourceUrl,
+        ...(studyAt ? { studyAt } : {}),
+        ...(practiceDeadline ? { practiceDeadline } : {}),
       })
 
       if (!note) {
@@ -75,7 +99,7 @@ export function buildNoteController(noteService: NoteService) {
       res.status(201).json({ note })
     },
 
-    async uploadPdf(req: MulterReq, res: Response) {
+    async uploadFile(req: MulterReq, res: Response) {
       const userId = req.userId!
 
       const subjectId = asString((req.body as Record<string, unknown>).subjectId)
@@ -92,18 +116,29 @@ export function buildNoteController(noteService: NoteService) {
 
       const file = req.file
       if (!file?.buffer?.length) {
-        res.status(400).json({ message: 'পিডিএফ ফাইল প্রয়োজন' })
+        res.status(400).json({ message: 'ফাইল প্রয়োজন' })
         return
       }
 
       try {
-        const fileUrl = await uploadPdfBuffer(file.buffer, userId, file.originalname)
+        const { fileUrl, noteType } = await uploadNoteFileBuffer(
+          file.buffer,
+          userId,
+          file.originalname,
+          file.mimetype
+        )
+        const rawBody = req.body as Record<string, unknown>
+        const studyAt = parseStudyAt(rawBody.studyAt)
+        const practiceDeadline = parsePracticeDeadlineDay(rawBody.practiceDeadline)
+
         const note = await noteService.create(userId, {
           subjectId,
           chapterId,
-          type: 'pdf',
+          type: noteType,
           title,
           fileUrl,
+          ...(studyAt ? { studyAt } : {}),
+          ...(practiceDeadline ? { practiceDeadline } : {}),
         })
 
         if (!note) {
@@ -113,7 +148,7 @@ export function buildNoteController(noteService: NoteService) {
 
         res.status(201).json({ note })
       } catch (error) {
-        console.error('[note] pdf upload failed', error)
+        console.error('[note] file upload failed', error)
         res.status(500).json({ message: 'আপলোড ব্যর্থ হয়েছে' })
       }
     },
@@ -129,6 +164,8 @@ export function buildNoteController(noteService: NoteService) {
         sourceUrl?: string | null
         fileUrl?: string | null
         type: NoteType
+        studyAt?: Date | null
+        practiceDeadline?: Date | null
       }> = {}
 
       const title = asString(req.body.title)
@@ -143,11 +180,20 @@ export function buildNoteController(noteService: NoteService) {
       if (fileUrlRaw !== undefined) patch.fileUrl = typeof fileUrlRaw === 'string' ? fileUrlRaw : undefined
 
       const typeRaw = asString(req.body.type)
-      if (typeRaw === 'text' || typeRaw === 'pdf' || typeRaw === 'url' || typeRaw === 'youtube') {
+      if (
+        typeRaw === 'text' ||
+        typeRaw === 'pdf' ||
+        typeRaw === 'image' ||
+        typeRaw === 'document' ||
+        typeRaw === 'url' ||
+        typeRaw === 'youtube'
+      ) {
         patch.type = typeRaw
       }
 
       if (title) patch.title = title
+
+      Object.assign(patch, interpretSchedulePatchFromBody(req.body as Record<string, unknown>))
 
       const note = await noteService.update(userId, id, patch as never)
       if (!note) {

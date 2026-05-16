@@ -2,25 +2,43 @@
 
 import { useMemo, useState } from 'react'
 
+import { useRouter } from 'next/navigation'
+
 import { CalendarView } from '@/components/calendar/CalendarView'
 
 import { EventForm } from '@/components/calendar/EventForm'
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
-import { useCalendarEvents, useCreateCalendarEvent, useDeleteCalendarEvent, useUpdateCalendarEvent } from '@/hooks/useCalendar'
+import {
+
+  useCalendarEvents,
+
+  useCreateCalendarEvent,
+
+  useDeleteCalendarEvent,
+
+  useUpdateCalendarEvent,
+
+} from '@/hooks/useCalendar'
 
 import { useSubjects } from '@/hooks/useSubjects'
 
-import type { CalendarEvent } from '@/types/models'
+import type { CalendarEvent, CalendarNoteSlot } from '@/types/models'
 
 export default function CalendarPage() {
+
+  const router = useRouter()
 
   const today = useMemo(() => new Date(), [])
 
   const [cursor, setCursor] = useState(() => ({ month: today.getMonth() + 1, year: today.getFullYear() }))
 
-  const { data: events } = useCalendarEvents(cursor.month, cursor.year)
+  const { data: calendarData } = useCalendarEvents(cursor.month, cursor.year)
+
+  const events = calendarData?.events ?? []
+
+  const noteSlots = calendarData?.noteSlots ?? []
 
   const { data: subjects } = useSubjects()
 
@@ -46,6 +64,20 @@ export default function CalendarPage() {
 
   }
 
+  const goNote = (slot: CalendarNoteSlot) => {
+
+    if (slot.chapterId) {
+
+      router.push(`/subject/${slot.subjectId}/chapter/${slot.chapterId}`)
+
+      return
+
+    }
+
+    router.push(`/subject/${slot.subjectId}`)
+
+  }
+
   return (
 
     <div className="mx-auto max-w-6xl space-y-4">
@@ -54,13 +86,21 @@ export default function CalendarPage() {
 
         <h1 className="text-2xl font-semibold">পড়াশোনার ক্যালেন্ডার</h1>
 
-        <p className="text-sm text-muted-foreground">মাস ও সপ্তাহ ভিউতে ইভেন্ট দেখুন, নতুন সময়সূচী যোগ করুন।</p>
+        <p className="text-sm text-muted-foreground">
+
+          মাস ও সপ্তাহ ভিউতে হাতে যোগ করা ইভেন্ট (নীল·সবুজ) ও নোট থেকে দেওয়া সময় মিলিয়ে দেখুন।
+
+          নোটের পড়াশোনার সময় বেগুনি, ডেডলাইন কমলা ব্লক — ক্লিক করলে সেই বিষয়ে নিয়ে যাবে।
+
+        </p>
 
       </div>
 
       <CalendarView
 
-        events={events ?? []}
+        events={events}
+
+        noteSlots={noteSlots}
 
         initialDate={today}
 
@@ -80,7 +120,7 @@ export default function CalendarPage() {
 
         }}
 
-        onEventClick={(ev) => {
+        onCalendarEventClick={(ev) => {
 
           setEditing(ev)
 
@@ -89,6 +129,8 @@ export default function CalendarPage() {
           setOpen(true)
 
         }}
+
+        onNoteSlotClick={(slot) => goNote(slot)}
 
       />
 
